@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CardVault">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>CardVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --brand:#1a1a2e;--accent:#e94560;--accent2:#0f3460;
+  --surface:#f8f7f4;--card-bg:#ffffff;--text:#1a1a2e;--muted:#6b7280;
+  --border:#e5e7eb;--tag-bg:#eef2ff;--tag-text:#4338ca;--green:#10b981;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text)}
+
+/* ── Layout ── */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.app-header{
+  background:var(--brand);
+  padding:calc(12px + var(--safe-top)) 20px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;z-index:50;
+}
+.app-title{color:#fff;font-size:18px;font-weight:600;letter-spacing:-0.3px;line-height:1.2}
+.app-title span{color:#e94560;font-family:'DM Mono',monospace;font-size:11px;display:block;font-weight:400;letter-spacing:0.5px;opacity:0.9}
+.add-btn{
+  width:38px;height:38px;border-radius:50%;background:var(--accent);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:22px;line-height:1;font-weight:300;flex-shrink:0;
+}
+
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px}
+
+/* ── Search ── */
+.search-section{padding:14px 16px 6px;position:sticky;top:0;background:var(--surface);z-index:40}
+.voice-bar{
+  background:var(--card-bg);border:0.5px solid var(--border);border-radius:14px;
+  padding:10px 14px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.07);
+}
+.mic-btn{
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all 0.2s;
+}
+.mic-btn.listening{background:var(--green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+.mic-icon{width:18px;height:18px;fill:#fff;pointer-events:none}
+.search-input{
+  flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;
+  font-size:15px;color:var(--text);background:transparent;min-width:0;
+}
+.search-input::placeholder{color:var(--muted)}
+.clear-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;padding:2px 0;display:none;line-height:1}
+
+/* ── Quick tags ── */
+.quick-tags{
+  padding:8px 16px 4px;display:flex;gap:7px;
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+}
+.quick-tags::-webkit-scrollbar{display:none}
+.qtag{
+  white-space:nowrap;padding:6px 13px;border-radius:20px;
+  border:0.5px solid var(--border);background:var(--card-bg);
+  font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;
+  transition:all 0.15s;flex-shrink:0;
+}
+.qtag.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+/* ── Section header ── */
+.section-header{padding:10px 16px 6px;display:flex;align-items:center;justify-content:space-between}
+.section-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase}
+.results-count{font-size:12px;color:var(--muted)}
+
+/* ── Card Grid ── */
+.cards-grid{padding:0 12px;display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.biz-card{
+  background:var(--card-bg);border:0.5px solid var(--border);border-radius:16px;
+  overflow:hidden;cursor:pointer;transition:transform 0.12s;
+  -webkit-user-select:none;user-select:none;
+}
+.biz-card:active{transform:scale(0.96)}
+.card-thumb{
+  width:100%;aspect-ratio:1.9/1;
+  background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;overflow:hidden;position:relative;
+}
+.card-thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.card-type-badge{
+  position:absolute;top:6px;right:6px;
+  background:rgba(0,0,0,0.55);color:#fff;font-size:9px;font-weight:600;
+  padding:2px 6px;border-radius:8px;letter-spacing:0.4px;text-transform:uppercase;
+}
+.card-info{padding:9px 11px}
+.card-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-company{font-size:11px;color:var(--muted);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.card-tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;background:var(--tag-bg);color:var(--tag-text)}
+
+/* ── Empty state ── */
+.empty-state{grid-column:1/-1;padding:48px 20px;text-align:center}
+.empty-icon{font-size:44px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.empty-sub{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* ── Loading ── */
+.loading-state{grid-column:1/-1;padding:40px;text-align:center;color:var(--muted);font-size:14px}
+.spinner{
+  width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Detail Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;
+  display:flex;align-items:flex-end;opacity:0;pointer-events:none;
+  transition:opacity 0.2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--card-bg);border-radius:24px 24px 0 0;width:100%;
+  padding:20px 20px calc(20px + var(--safe-bot));
+  max-height:90vh;overflow-y:auto;
+  transform:translateY(40px);transition:transform 0.25s cubic-bezier(0.34,1.2,0.64,1);
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;cursor:pointer}
+
+.card-preview-wrap{
+  width:100%;border-radius:12px;aspect-ratio:1.9/1;overflow:hidden;
+  background:linear-gradient(135deg,#1a1a2e,#0f3460);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;font-size:56px;position:relative;cursor:pointer;
+}
+.card-preview-wrap img{width:100%;height:100%;object-fit:cover}
+.card-preview-wrap .view-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0);
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.2s;
+}
+.card-preview-wrap:hover .view-overlay{background:rgba(0,0,0,0.3)}
+.view-overlay span{color:#fff;font-size:13px;font-weight:600;opacity:0;transition:opacity 0.2s}
+.card-preview-wrap:hover .view-overlay span{opacity:1}
+
+.modal-name{font-size:20px;font-weight:600;margin-bottom:3px}
+.modal-company{font-size:14px;color:var(--muted);margin-bottom:12px}
+.modal-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.modal-tag{padding:4px 12px;border-radius:20px;background:var(--tag-bg);color:var(--tag-text);font-size:12px;font-weight:500}
+.info-row{
+  display:flex;align-items:center;gap:12px;padding:11px 0;
+  border-bottom:0.5px solid var(--border);cursor:pointer;
+}
+.info-row:last-child{border-bottom:none}
+.info-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0}
+.info-text{font-size:14px;color:var(--text)}
+.info-text a{color:var(--accent2);text-decoration:none}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.action-btn{
+  padding:13px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;gap:8px;
+}
+.btn-call{background:var(--green);color:#fff}
+.btn-view-card{background:var(--accent2);color:#fff}
+.btn-delete{
+  width:100%;padding:13px;border-radius:12px;border:1.5px solid #fecaca;
+  background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;
+  font-weight:500;cursor:pointer;color:#dc2626;margin-top:10px;
+}
+.close-btn{
+  position:absolute;top:16px;right:16px;width:30px;height:30px;
+  border-radius:50%;background:var(--surface);border:none;cursor:pointer;
+  font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--muted);
+}
+
+/* ── Upload Modal ── */
+.upload-modal .modal{position:relative}
+.modal-section-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.upload-area{
+  border:1.5px dashed var(--border);border-radius:12px;padding:28px 20px;
+  text-align:center;margin-bottom:14px;cursor:pointer;transition:border-color 0.15s;
+  background:var(--surface);
+}
+.upload-area:hover{border-color:var(--accent)}
+.upload-area.drag-over{border-color:var(--accent);background:#fff5f5}
+.upload-icon{font-size:34px;margin-bottom:6px}
+.upload-text{font-size:13px;color:var(--muted);line-height:1.5}
+.upload-text strong{color:var(--text);display:block;margin-bottom:2px}
+.preview-img{
+  width:100%;border-radius:10px;margin-bottom:12px;
+  aspect-ratio:1.9/1;object-fit:cover;display:block;
+}
+.pdf-preview{
+  display:flex;align-items:center;gap:10px;padding:12px;
+  background:var(--surface);border-radius:10px;margin-bottom:12px;
+}
+.pdf-icon{font-size:28px}
+.pdf-name{font-size:13px;font-weight:500;color:var(--text)}
+.pdf-size{font-size:11px;color:var(--muted)}
+
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;display:block}
+.form-input{
+  width:100%;padding:11px 13px;border:0.5px solid var(--border);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--card-bg);
+  outline:none;margin-bottom:13px;
+}
+.form-input:focus{border-color:var(--accent);border-width:1px}
+.tag-input-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.tag-input-row .form-input{margin-bottom:0;flex:1}
+.tag-add-btn{
+  padding:11px 14px;background:var(--brand);color:#fff;border:none;
+  border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap;
+  flex-shrink:0;font-family:'DM Sans',sans-serif;
+}
+.tag-pills{display:flex;gap:6px;flex-wrap:wrap;min-height:20px;margin-bottom:14px}
+.tag-pill{
+  padding:5px 10px 5px 13px;background:var(--tag-bg);color:var(--tag-text);
+  border-radius:20px;font-size:12px;font-weight:500;
+  display:flex;align-items:center;gap:5px;
+}
+.tag-pill button{
+  background:none;border:none;cursor:pointer;
+  color:var(--tag-text);font-size:16px;line-height:1;padding:0;opacity:0.6;
+}
+.save-btn{
+  width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;
+  margin-top:4px;
+}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed}
+.ai-suggest-row{
+  display:flex;align-items:center;gap:8px;padding:10px 13px;
+  background:var(--tag-bg);border-radius:10px;margin-bottom:13px;font-size:13px;color:var(--tag-text);
+}
+.ai-suggest-btn{
+  margin-left:auto;padding:5px 12px;background:var(--tag-text);color:#fff;
+  border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;
+  transform:translateX(-50%) translateY(10px);
+  background:var(--brand);color:#fff;padding:10px 20px;border-radius:20px;
+  font-size:13px;font-weight:500;z-index:400;
+  opacity:0;transition:opacity 0.2s,transform 0.2s;pointer-events:none;
+  white-space:nowrap;max-width:90vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Nav ── */
+.nav-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--card-bg);border-top:0.5px solid var(--border);
+  padding:8px 0 calc(8px + var(--safe-bot));
+  display:flex;justify-content:space-around;z-index:100;flex-shrink:0;
+}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;padding:4px 20px;opacity:0.6;
+}
+.nav-item.active{opacity:1}
+.nav-icon{font-size:20px}
+.nav-label{font-size:10px;font-weight:500;color:var(--muted)}
+.nav-item.active .nav-label{color:var(--accent)}
+
+/* ── Fullscreen image viewer ── */
+.img-viewer{
+  position:fixed;inset:0;background:#000;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.img-viewer.open{opacity:1;pointer-events:all}
+.img-viewer img{max-width:100%;max-height:100vh;object-fit:contain}
+.img-viewer-close{
+  position:absolute;top:calc(16px + var(--safe-top));right:16px;
+  width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.15);
+  border:none;cursor:pointer;color:#fff;font-size:20px;
+  display:flex;align-items:center;justify-content:center;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="app-header">
+    <div class="app-title">CardVault <span>vendor lookup</span></div>
+    <button class="add-btn" onclick="openUpload()" aria-label="Add card">+</button>
+  </header>
+
+  <div class="scroll-area" id="scrollArea">
+    <div class="search-section">
+      <div class="voice-bar">
+        <button class="mic-btn" id="micBtn" onclick="toggleVoice()" aria-label="Voice search">
+          <svg class="mic-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm-6 10a6 6 0 0 0 12 0h2a8 8 0 0 1-7 7.93V21h-2v-2.07A8 8 0 0 1 4 11h2z"/>
+          </svg>
+        </button>
+        <input type="search" class="search-input" id="searchInput"
+          placeholder='Say or type "roofer", "plumber"…'
+          oninput="handleSearch(this.value)" autocomplete="off" autocorrect="off">
+        <button class="clear-btn" id="clearBtn" onclick="clearSearch()" aria-label="Clear">×</button>
+      </div>
+    </div>
+
+    <div class="quick-tags" id="quickTags"></div>
+
+    <div class="section-header">
+      <div class="section-label" id="sectionLabel">All Cards</div>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid">
+      <div class="loading-state"><div class="spinner"></div>Loading cards…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="handleOverlayClick(event,'detailModal')">
+  <div class="modal" style="position:relative">
+    <div class="modal-handle" onclick="closeDetail()"></div>
+    <div class="card-preview-wrap" id="detailThumb" onclick="openImgViewer()">
+      <div class="view-overlay"><span>View full size</span></div>
+    </div>
+    <div class="modal-name" id="detailName"></div>
+    <div class="modal-company" id="detailCompany"></div>
+    <div class="modal-tags" id="detailTags"></div>
+    <div id="detailInfo"></div>
+    <div class="action-btns" id="detailActions"></div>
+    <button class="btn-delete" id="deleteBtn">Delete Card</button>
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay upload-modal" id="uploadModal" onclick="handleOverlayClick(event,'uploadModal')">
+  <div class="modal" style="position:relative">
+    <button class="close-btn" onclick="closeUpload()">×</button>
+    <div class="modal-section-title">Add Business Card</div>
+
+    <div class="upload-area" id="uploadArea"
+      onclick="document.getElementById('fileInput').click()"
+      ondragover="e=>e.preventDefault()"
+      ondrop="handleDrop(event)">
+      <div class="upload-icon" id="uploadIcon">📷</div>
+      <div class="upload-text" id="uploadText">
+        <strong>Tap to capture or upload</strong>
+        Photo or PDF accepted
+      </div>
+      <input type="file" id="fileInput" accept="image/*,application/pdf"
+        style="display:none" onchange="handleFile(this)">
+    </div>
+    <div id="previewArea"></div>
+
+    <div class="ai-suggest-row" id="aiRow" style="display:none">
+      ✨ AI can read this card and fill the fields for you
+      <button class="ai-suggest-btn" id="aiBtn" onclick="runAI()">Auto-fill</button>
+    </div>
+
+    <label class="form-label">Name</label>
+    <input type="text" class="form-input" id="formName" placeholder="John Smith">
+
+    <label class="form-label">Company</label>
+    <input type="text" class="form-input" id="formCompany" placeholder="Smith Roofing LLC">
+
+    <label class="form-label">Phone</label>
+    <input type="tel" class="form-input" id="formPhone" placeholder="(214) 555-0100">
+
+    <label class="form-label">Email</label>
+    <input type="email" class="form-input" id="formEmail" placeholder="john@smithroofing.com">
+
+    <label class="form-label">Vendor Type Tags</label>
+    <div class="tag-input-row">
+      <input type="text" class="form-input" id="tagInput"
+        placeholder='e.g. "roofer"'
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addTag()}">
+      <button class="tag-add-btn" onclick="addTag()">+ Add</button>
+    </div>
+    <div class="tag-pills" id="tagPills"></div>
+
+    <label class="form-label">Notes (optional)</label>
+    <input type="text" class="form-input" id="formNotes" placeholder="Referred by Mike, great work on office">
+
+    <button class="save-btn" id="saveBtn" onclick="saveCard()">Save Card</button>
+  </div>
+</div>
+
+<!-- Fullscreen image viewer -->
+<div class="img-viewer" id="imgViewer">
+  <button class="img-viewer-close" onclick="closeImgViewer()">×</button>
+  <img id="imgViewerSrc" src="" alt="Business card">
+</div>
+
+<nav class="nav-bar">
+  <div class="nav-item active">
+    <div class="nav-icon">🗂️</div>
+    <div class="nav-label">Cards</div>
+  </div>
+  <div class="nav-item" onclick="window.location='/setup.html'">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Settings</div>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const API_BASE = '/api';
+
+// ── State ───────────────────────────────────────────────
+let cards = [];
+let filtered = [];
+let currentSearch = '';
+let currentTag = '';
+let newTags = [];
+let selectedFile = null;
+let selectedFileType = null; // 'image' | 'pdf'
+let activeCard = null;
+let recognition = null;
+let isListening = false;
+
+const QUICK_TAGS = [
+  'roofer','landscaper','plumber','electrician','HVAC',
+  'painter','tree trimmer','fencer','pool','handyman',
+  'flooring','concrete','pest control','windows','gutters',
+  'siding','foundation','general contractor','drywall','tile'
+];
+
+const TAG_EMOJIS = {
+  roofer:'🏠',landscaper:'🌿',plumber:'🔧',electrician:'⚡',
+  hvac:'❄️',painter:'🎨','tree trimmer':'🌳',fencer:'🚧',
+  pool:'🏊',handyman:'🔨',flooring:'🪵',concrete:'🏗️',
+  'pest control':'🐛',windows:'🪟',gutters:'🏚️',
+  siding:'🏘️',foundation:'🏛️','general contractor':'👷',
+  drywall:'🧱',tile:'🔲'
+};
+
+function getEmoji(tags = []) {
+  for (const t of tags) {
+    const k = t.toLowerCase();
+    if (TAG_EMOJIS[k]) return TAG_EMOJIS[k];
+  }
+  return '💼';
+}
+
+// ── Load cards ───────────────────────────────────────────
+async function loadCards() {
+  try {
+    const res = await fetch(`${API_BASE}/cards`);
+    if (!res.ok) throw new Error('Failed to load');
+    cards = await res.json();
+  } catch (e) {
+    // If API isn't set up yet, use demo data
+    cards = getDemoCards();
+  }
+  filtered = [...cards];
+  renderQuickTags();
+  renderCards();
+}
+
+function getDemoCards() {
+  return [
+    {id:'demo1',name:'Mike Torres',company:'Torres Roofing & Repair',phone:'(214) 555-0142',email:'mike@torresroofing.com',tags:['roofer','shingles'],notes:'Did our office roof 2022. Great work.',fileUrl:null,fileType:'image'},
+    {id:'demo2',name:'Green Thumb LLC',company:'Green Thumb Landscaping',phone:'(817) 555-0388',email:'info@greenthumb.com',tags:['landscaper','lawn care','sprinklers'],notes:'Monthly contract available',fileUrl:null,fileType:'image'},
+    {id:'demo3',name:"Bob's Tree Service",company:"Bob's Trees & Trimming",phone:'(972) 555-0211',email:'bob@bobstrees.com',tags:['tree trimmer','stump removal'],notes:'',fileUrl:null,fileType:'image'},
+    {id:'demo4',name:'DFW Electric Pro',company:'DFW Electric Solutions',phone:'(469) 555-0099',email:'service@dfwelectric.com',tags:['electrician','panel upgrade'],notes:'Licensed & bonded',fileUrl:null,fileType:'image'},
+    {id:'demo5',name:'Cool Air HVAC',company:'Cool Air Services Inc',phone:'(214) 555-0317',email:'coolair@gmail.com',tags:['HVAC','AC repair','heating'],notes:'24hr emergency service',fileUrl:null,fileType:'image'},
+    {id:'demo6',name:'Martinez Brothers',company:'Martinez Bros Painting',phone:'(817) 555-0455',email:'',tags:['painter','interior','exterior'],notes:'',fileUrl:null,fileType:'image'},
+  ];
+}
+
+// ── Render ───────────────────────────────────────────────
+function renderQuickTags() {
+  document.getElementById('quickTags').innerHTML =
+    ['All', ...QUICK_TAGS].map(t =>
+      `<div class="qtag ${(!currentTag && t === 'All') || currentTag === t ? 'active' : ''}"
+        onclick="filterByTag('${t}')">${t}</div>`
+    ).join('');
+}
+
+function renderCards() {
+  const grid = document.getElementById('cardsGrid');
+  if (!filtered.length) {
+    const isSearching = currentSearch || currentTag;
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${isSearching ? '🔍' : '📇'}</div>
+        <div class="empty-title">${isSearching ? 'No matches found' : 'No cards yet'}</div>
+        <div class="empty-sub">${isSearching
+          ? 'Try a different vendor type — or tap + to add this vendor'
+          : 'Tap the + button to add your first business card'}</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(c => {
+    const emoji = getEmoji(c.tags);
+    const thumb = c.fileUrl && c.fileType === 'image'
+      ? `<img src="${c.fileUrl}" alt="${c.name}" loading="lazy">`
+      : `${emoji}`;
+    const badge = c.fileType === 'pdf'
+      ? `<div class="card-type-badge">PDF</div>` : '';
+    return `
+      <div class="biz-card" onclick="openDetail('${c.id}')">
+        <div class="card-thumb">${thumb}${badge}</div>
+        <div class="card-info">
+          <div class="card-name">${c.name}</div>
+          <div class="card-company">${c.company || '—'}</div>
+          <div class="card-tags">${c.tags.slice(0,2).map(t =>
+            `<span class="card-tag">${t}</span>`).join('')}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Search & Filter ──────────────────────────────────────
+function handleSearch(val, fromTag = false) {
+  if (!fromTag) {
+    currentSearch = val;
+    document.getElementById('clearBtn').style.display = val ? 'block' : 'none';
+  }
+  const q = val.toLowerCase().trim();
+  filtered = cards.filter(c => {
+    const matchSearch = !q ||
+      c.name.toLowerCase().includes(q) ||
+      (c.company || '').toLowerCase().includes(q) ||
+      c.tags.some(t => t.toLowerCase().includes(q)) ||
+      (c.phone || '').includes(q) ||
+      (c.notes || '').toLowerCase().includes(q);
+    const matchTag = !currentTag ||
+      c.tags.some(t => t.toLowerCase() === currentTag.toLowerCase());
+    return matchSearch && matchTag;
+  });
+
+  const label = document.getElementById('sectionLabel');
+  const count = document.getElementById('resultsCount');
+  if (q || currentTag) {
+    label.textContent = 'Search Results';
+    count.textContent = `${filtered.length} card${filtered.length !== 1 ? 's' : ''}`;
+  } else {
+    label.textContent = 'All Cards';
+    count.textContent = cards.length ? `${cards.length} total` : '';
+  }
+  renderCards();
+}
+
+function filterByTag(tag) {
+  currentTag = tag === 'All' ? '' : tag;
+  handleSearch(currentSearch, true);
+  renderQuickTags();
+  document.getElementById('scrollArea').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  currentSearch = '';
+  handleSearch('');
+}
+
+// ── Voice Search ─────────────────────────────────────────
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('Voice search not supported in this browser');
+    return;
+  }
+  if (isListening) { recognition && recognition.stop(); return; }
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    showToast('Listening… say a vendor type');
+  };
+
+  recognition.onresult = e => {
+    let best = e.results[0][0].transcript.toLowerCase().trim();
+    // Try to match against known tags
+    const match = QUICK_TAGS.find(t =>
+      best.includes(t.toLowerCase()) || t.toLowerCase().includes(best));
+    const term = match || best;
+    document.getElementById('searchInput').value = term;
+    handleSearch(term);
+    showToast(`"${term}" — ${filtered.length} card${filtered.length !== 1 ? 's' : ''} found`);
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+  };
+
+  recognition.onerror = () => {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('listening');
+    showToast('Could not hear — try again');
+  };
+
+  recognition.start();
+}
+
+// ── Detail Modal ─────────────────────────────────────────
+function openDetail(id) {
+  activeCard = cards.find(c => c.id === id);
+  if (!activeCard) return;
+
+  const c = activeCard;
+  const thumb = document.getElementById('detailThumb');
+  thumb.innerHTML = '<div class="view-overlay"><span>View full size</span></div>';
+
+  if (c.fileUrl && c.fileType === 'image') {
+    const img = document.createElement('img');
+    img.src = c.fileUrl;
+    img.alt = c.name;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0';
+    thumb.insertBefore(img, thumb.firstChild);
+    thumb.style.cursor = 'pointer';
+  } else if (c.fileUrl && c.fileType === 'pdf') {
+    thumb.innerHTML = `<span style="font-size:52px">📄</span><div style="color:#fff;font-size:11px;font-weight:600;margin-top:4px;opacity:0.7">TAP TO OPEN PDF</div><div class="view-overlay"><span>Open PDF</span></div>`;
+    thumb.style.cursor = 'pointer';
+  } else {
+    thumb.innerHTML = `<span style="font-size:56px">${getEmoji(c.tags)}</span>`;
+    thumb.style.cursor = 'default';
+  }
+
+  document.getElementById('detailName').textContent = c.name;
+  document.getElementById('detailCompany').textContent = c.company || '';
+  document.getElementById('detailTags').innerHTML = c.tags.map(t =>
+    `<span class="modal-tag">${t}</span>`).join('');
+
+  const rows = [
+    c.phone ? `<div class="info-row" onclick="window.location='tel:${c.phone}'">
+      <span class="info-icon">📞</span>
+      <span class="info-text"><a href="tel:${c.phone}">${c.phone}</a></span>
+    </div>` : '',
+    c.email ? `<div class="info-row" onclick="window.location='mailto:${c.email}'">
+      <span class="info-icon">✉️</span>
+      <span class="info-text"><a href="mailto:${c.email}">${c.email}</a></span>
+    </div>` : '',
+    c.notes ? `<div class="info-row">
+      <span class="info-icon">📝</span>
+      <span class="info-text">${c.notes}</span>
+    </div>` : '',
+  ].filter(Boolean);
+  document.getElementById('detailInfo').innerHTML = rows.join('');
+
+  const actions = document.getElementById('detailActions');
+  actions.innerHTML = `
+    ${c.phone
+      ? `<button class="action-btn btn-call" onclick="window.location='tel:${c.phone}'">📞 Call</button>`
+      : '<div></div>'}
+    ${c.fileUrl
+      ? `<button class="action-btn btn-view-card" onclick="openImgViewer()">
+          ${c.fileType === 'pdf' ? '📄 Open PDF' : '🖼️ Full Card'}</button>`
+      : '<div></div>'}`;
+
+  document.getElementById('deleteBtn').onclick = () => deleteCard(c.id);
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('open');
+  activeCard = null;
+}
+
+function openImgViewer() {
+  if (!activeCard || !activeCard.fileUrl) return;
+  if (activeCard.fileType === 'pdf') {
+    window.open(activeCard.fileUrl, '_blank');
+    return;
+  }
+  document.getElementById('imgViewerSrc').src = activeCard.fileUrl;
+  document.getElementById('imgViewer').classList.add('open');
+}
+function closeImgViewer() {
+  document.getElementById('imgViewer').classList.remove('open');
+}
+
+async function deleteCard(id) {
+  if (!confirm('Delete this card?')) return;
+  try {
+    await fetch(`${API_BASE}/cards/${id}`, { method: 'DELETE' });
+    cards = cards.filter(c => c.id !== id);
+    filtered = filtered.filter(c => c.id !== id);
+    closeDetail();
+    renderCards();
+    showToast('Card deleted');
+  } catch {
+    showToast('Delete failed — try again');
+  }
+}
+
+// ── Upload Modal ─────────────────────────────────────────
+function openUpload() {
+  resetUploadForm();
+  document.getElementById('uploadModal').classList.add('open');
+}
+
+function closeUpload() {
+  document.getElementById('uploadModal').classList.remove('open');
+}
+
+function resetUploadForm() {
+  selectedFile = null;
+  selectedFileType = null;
+  newTags = [];
+  ['formName','formCompany','formPhone','formEmail','formNotes','tagInput'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.getElementById('tagPills').innerHTML = '';
+  document.getElementById('previewArea').innerHTML = '';
+  document.getElementById('uploadIcon').textContent = '📷';
+  document.getElementById('uploadText').innerHTML = '<strong>Tap to capture or upload</strong>Photo or PDF accepted';
+  document.getElementById('aiRow').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+}
+
+function handleFile(input) {
+  const f = input.files[0];
+  if (!f) return;
+  processFile(f);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadArea').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) processFile(f);
+}
+
+function processFile(f) {
+  selectedFile = f;
+  const preview = document.getElementById('previewArea');
+  const icon = document.getElementById('uploadIcon');
+  const text = document.getElementById('uploadText');
+
+  if (f.type.startsWith('image/')) {
+    selectedFileType = 'image';
+    const url = URL.createObjectURL(f);
+    preview.innerHTML = `<img src="${url}" class="preview-img" alt="Card preview">`;
+    icon.textContent = '✅';
+    text.innerHTML = `<strong>${f.name}</strong>Ready to save`;
+    document.getElementById('aiRow').style.display = 'flex';
+  } else if (f.type === 'application/pdf') {
+    selectedFileType = 'pdf';
+    const size = (f.size / 1024).toFixed(0);
+    preview.innerHTML = `
+      <div class="pdf-preview">
+        <span class="pdf-icon">📄</span>
+        <div><div class="pdf-name">${f.name}</div><div class="pdf-size">${size} KB · PDF</div></div>
+      </div>`;
+    icon.textContent = '✅';
+    text.innerHTML = `<strong>PDF loaded</strong>Fill in the details below`;
+  }
+}
+
+// ── AI Auto-fill ─────────────────────────────────────────
+async function runAI() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('aiBtn');
+  btn.textContent = '…';
+  btn.disabled = true;
+
+  try {
+    const b64 = await fileToBase64(selectedFile);
+    const res = await fetch('/api/ai-read-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageData: b64, mediaType: selectedFile.type })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+
+    if (data.name) document.getElementById('formName').value = data.name;
+    if (data.company) document.getElementById('formCompany').value = data.company;
+    if (data.phone) document.getElementById('formPhone').value = data.phone;
+    if (data.email) document.getElementById('formEmail').value = data.email;
+    if (data.tags && data.tags.length) {
+      newTags = [...new Set([...newTags, ...data.tags])];
+      renderTagPills();
+    }
+    showToast('Fields filled from card image ✓');
+  } catch {
+    showToast('AI read failed — fill in manually');
+  }
+
+  btn.textContent = 'Auto-fill';
+  btn.disabled = false;
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej();
+    r.readAsDataURL(file);
+  });
+}
+
+// ── Tags ─────────────────────────────────────────────────
+function addTag() {
+  const v = document.getElementById('tagInput').value.trim().toLowerCase();
+  if (v && !newTags.includes(v)) {
+    newTags.push(v);
+    renderTagPills();
+  }
+  document.getElementById('tagInput').value = '';
+}
+
+function removeTag(t) {
+  newTags = newTags.filter(x => x !== t);
+  renderTagPills();
+}
+
+function renderTagPills() {
+  document.getElementById('tagPills').innerHTML = newTags.map(t =>
+    `<div class="tag-pill">${t}<button onclick="removeTag('${t}')" type="button">×</button></div>`
+  ).join('');
+}
+
+// ── Save Card ─────────────────────────────────────────────
+async function saveCard() {
+  const name = document.getElementById('formName').value.trim();
+  if (!name) { showToast('Please enter a name'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const formData = new FormData();
+    if (selectedFile) formData.append('file', selectedFile);
+    formData.append('name', name);
+    formData.append('company', document.getElementById('formCompany').value.trim());
+    formData.append('phone', document.getElementById('formPhone').value.trim());
+    formData.append('email', document.getElementById('formEmail').value.trim());
+    formData.append('notes', document.getElementById('formNotes').value.trim());
+    formData.append('tags', JSON.stringify(newTags.length ? newTags : ['vendor']));
+    formData.append('fileType', selectedFileType || 'none');
+
+    const res = await fetch(`${API_BASE}/cards`, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error();
+    const saved = await res.json();
+
+    cards.unshift(saved);
+    closeUpload();
+    currentSearch = '';
+    currentTag = '';
+    filtered = [...cards];
+    document.getElementById('searchInput').value = '';
+    renderQuickTags();
+    handleSearch('');
+    showToast('Card saved! ✓');
+  } catch {
+    // Demo mode — save locally
+    const demoCard = {
+      id: 'local_' + Date.now(),
+      name,
+      company: document.getElementById('formCompany').value.trim(),
+      phone: document.getElementById('formPhone').value.trim(),
+      email: document.getElementById('formEmail').value.trim(),
+      notes: document.getElementById('formNotes').value.trim(),
+      tags: newTags.length ? newTags : ['vendor'],
+      fileUrl: selectedFile && selectedFileType === 'image' ? URL.createObjectURL(selectedFile) : null,
+      fileType: selectedFileType
+    };
+    cards.unshift(demoCard);
+    closeUpload();
+    filtered = [...cards];
+    handleSearch('');
+    showToast('Saved locally (deploy API for persistence)');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Save Card';
+}
+
+// ── Utilities ─────────────────────────────────────────────
+function handleOverlayClick(e, modalId) {
+  if (e.target.classList.contains('modal-overlay')) {
+    document.getElementById(modalId).classList.remove('open');
+    if (modalId === 'detailModal') activeCard = null;
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Service Worker ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── Init ──────────────────────────────────────────────────
+loadCards();
+</script>
+</body>
+</html>

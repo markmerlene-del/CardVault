@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": "public",
+  "functions": {
+    "api/**/*.js": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ],
+  "env": {
+    "GITHUB_TOKEN": "@github-token",
+    "GITHUB_REPO": "@github-repo",
+    "GITHUB_BRANCH": "@github-branch",
+    "ANTHROPIC_API_KEY": "@anthropic-api-key"
+  }
+}
