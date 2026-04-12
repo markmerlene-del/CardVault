@@ -1,5 +1,19 @@
 [
   {
+    "id": "card_1776001883192",
+    "name": "Safety Tree Service",
+    "company": "Safety Tree Service",
+    "phone": "2144054794",
+    "email": "",
+    "notes": "",
+    "tags": [
+      "tree service"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776001883192.jpeg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T13:51:23.968Z"
+  },
+  {
     "id": "card_1776001790599",
     "name": "Mariana Aponte",
     "company": "Mariana Cleaning",
