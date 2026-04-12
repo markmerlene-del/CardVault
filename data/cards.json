@@ -1,5 +1,19 @@
 [
   {
+    "id": "card_1776001790599",
+    "name": "Mariana Aponte",
+    "company": "Mariana Cleaning",
+    "phone": "",
+    "email": "",
+    "notes": "",
+    "tags": [
+      "vendor"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776001790599.jpeg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T13:49:51.196Z"
+  },
+  {
     "id": "card_1776001667751",
     "name": "Christopher Lopez",
     "company": "Interior Demolition and junk removal",
