@@ -10,12 +10,6 @@
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ],
-  "env": {
-    "GITHUB_TOKEN": "@github-token",
-    "GITHUB_REPO": "@github-repo",
-    "GITHUB_BRANCH": "@github-branch",
-    "ANTHROPIC_API_KEY": "@anthropic-api-key"
-  }
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
 }
