@@ -1,5 +1,19 @@
 [
   {
+    "id": "card_1776012181778",
+    "name": "Anthony Mendez",
+    "company": "M&M pest and wildlife",
+    "phone": "4696424283",
+    "email": "mikeandmannypest@gmail.com",
+    "notes": "",
+    "tags": [
+      "pest control"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776012181778.jpg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T16:43:02.698Z"
+  },
+  {
     "id": "card_1776011971262",
     "name": "Juan Lopez",
     "company": "JC Landscape Services",
