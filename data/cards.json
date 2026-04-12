@@ -1,5 +1,19 @@
 [
   {
+    "id": "card_1776001667751",
+    "name": "Christopher Lopez",
+    "company": "Interior Demolition and junk removal",
+    "phone": "4694122848",
+    "email": "",
+    "notes": "",
+    "tags": [
+      "vendor"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776001667751.jpeg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T13:47:48.330Z"
+  },
+  {
     "id": "card_1776001570476",
     "name": "Classy Cuts",
     "company": "Classy Cuts",
