@@ -1,5 +1,19 @@
 [
   {
+    "id": "card_1776011374173",
+    "name": "Mark Merlene",
+    "company": "Simple Junk Removal",
+    "phone": "4698092407",
+    "email": "",
+    "notes": "Junk removal",
+    "tags": [
+      "junk removal"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776011374173.jpg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T16:29:35.133Z"
+  },
+  {
     "id": "card_1776001883192",
     "name": "Safety Tree Service",
     "company": "Safety Tree Service",
