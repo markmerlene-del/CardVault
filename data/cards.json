@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "card_1776001444531",
+    "name": "David Ratliff",
+    "company": "The Electric Works",
+    "phone": "9723334234",
+    "email": "",
+    "notes": "",
+    "tags": [
+      "vendor"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776001444531.jpeg",
+    "fileType": "image",
+    "createdAt": "2026-04-12T13:44:05.133Z"
+  }
+]
