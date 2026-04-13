@@ -408,7 +408,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text
     <div class="nav-icon">🗂️</div>
     <div class="nav-label">Cards</div>
   </div>
-  <div class="nav-item" onclick="window.location='/setup.html'">
+  <div class="nav-item" onclick="showToast('Settings: configure env vars in Vercel dashboard')">
     <div class="nav-icon">⚙️</div>
     <div class="nav-label">Settings</div>
   </div>
@@ -593,9 +593,11 @@ function toggleVoice() {
 
   recognition.onresult = e => {
     let best = e.results[0][0].transcript.toLowerCase().trim();
-    // Try to match against known tags
-    const match = QUICK_TAGS.find(t =>
-      best.includes(t.toLowerCase()) || t.toLowerCase().includes(best));
+    // Collect all unique tags from loaded cards
+    const allTags = [...new Set(cards.flatMap(c => c.tags || []).map(t => t.toLowerCase()))];
+    // Try card tags first, then QUICK_TAGS
+    const allKnown = [...allTags, ...QUICK_TAGS.map(t => t.toLowerCase())];
+    const match = allKnown.find(t => best.includes(t) || t.includes(best));
     const term = match || best;
     document.getElementById('searchInput').value = term;
     handleSearch(term);
