@@ -1,5 +1,20 @@
 [
   {
+    "id": "card_1776086848834",
+    "name": "Mark Merlene, Sr",
+    "company": "Tonia Felczer Top Dog Real Estate & Management, LLC",
+    "phone": "972.310.0330",
+    "email": "Mark@DFWHomeBuyersGuide.com",
+    "notes": "",
+    "tags": [
+      "real estate",
+      "property management"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776086848834.jpeg",
+    "fileType": "image",
+    "createdAt": "2026-04-13T13:27:29.551Z"
+  },
+  {
     "id": "card_1776012268408",
     "name": "Bartolo Bahena",
     "company": "Tree Service",
