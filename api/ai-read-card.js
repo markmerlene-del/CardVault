@@ -52,7 +52,10 @@ Return ONLY the JSON object. No explanation, no markdown, no backticks.`
       })
     });
 
-    if (!response.ok) throw new Error(`Anthropic error: ${response.status}`);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Anthropic error: ${response.status} — ${errText}`);
+    }
     const data = await response.json();
     const text = data.content.find(b => b.type === 'text')?.text || '{}';
 

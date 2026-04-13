@@ -784,7 +784,7 @@ async function runAI() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ imageData: b64, mediaType: selectedFile.type })
     });
-    if (!res.ok) throw new Error();
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error || 'HTTP '+res.status); }
     const data = await res.json();
 
     if (data.name) document.getElementById('formName').value = data.name;
@@ -796,8 +796,9 @@ async function runAI() {
       renderTagPills();
     }
     showToast('Fields filled from card image ✓');
-  } catch {
-    showToast('AI read failed — fill in manually');
+  } catch (err) {
+    showToast('AI read failed: ' + err.message);
+    console.error('AI error:', err.message);
   }
 
   btn.textContent = 'Auto-fill';
