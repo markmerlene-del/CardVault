@@ -540,8 +540,12 @@ function handleSearch(val, fromTag = false) {
       c.tags.some(t => t.toLowerCase().includes(q)) ||
       (c.phone || '').includes(q) ||
       (c.notes || '').toLowerCase().includes(q);
+    const normalize = s => s.toLowerCase().replace(/er$|ing$|ion$|s$/, '').trim();
     const matchTag = !currentTag ||
-      c.tags.some(t => t.toLowerCase() === currentTag.toLowerCase());
+      c.tags.some(t => {
+        const a = t.toLowerCase(), b = currentTag.toLowerCase();
+        return a === b || a.includes(b) || b.includes(a) || normalize(a) === normalize(b);
+      });
     return matchSearch && matchTag;
   });
 
