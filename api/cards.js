@@ -3,14 +3,14 @@
 // Card files stored in /public/cards/, metadata in /data/cards.json
 // Uses GitHub API to commit files (Vercel filesystem is read-only in production)
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import formidable from 'formidable';
+const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
+const { join } = require('path');
+const formidable = require('formidable');
 
-export const config = { api: { bodyParser: false } };
+const config = { api: { bodyParser: false } };
+module.exports.config = config;
 
 const DATA_FILE = join(process.cwd(), 'data', 'cards.json');
-const CARDS_DIR = join(process.cwd(), 'public', 'cards');
 
 function readCards() {
   try {
@@ -21,7 +21,7 @@ function readCards() {
 
 async function saveToGitHub(filename, content, isBase64 = false) {
   const token = process.env.GITHUB_TOKEN;
-  const repo  = process.env.GITHUB_REPO;   // e.g. "markmerlene-del/cardvault"
+  const repo  = process.env.GITHUB_REPO;
   const branch = process.env.GITHUB_BRANCH || 'main';
 
   if (!token || !repo) throw new Error('GitHub env vars not set');
@@ -29,7 +29,6 @@ async function saveToGitHub(filename, content, isBase64 = false) {
   const path = `public/cards/${filename}`;
   const url = `https://api.github.com/repos/${repo}/contents/${path}`;
 
-  // Check if file exists (for SHA)
   let sha;
   try {
     const check = await fetch(url, {
@@ -65,7 +64,6 @@ async function saveCardsJson(cards) {
   const branch = process.env.GITHUB_BRANCH || 'main';
 
   if (!token || !repo) {
-    // Local dev fallback
     if (!existsSync(join(process.cwd(), 'data'))) {
       mkdirSync(join(process.cwd(), 'data'), { recursive: true });
     }
@@ -135,11 +133,9 @@ module.exports = async function handler(req, res) {
     const id = `card_${Date.now()}`;
     let fileUrl = null;
 
-    // Handle file upload
     const uploadedFile = files.file ? (Array.isArray(files.file) ? files.file[0] : files.file) : null;
     if (uploadedFile && uploadedFile.size > 0) {
       try {
-        const { readFileSync } = await import('fs');
         const fileBuffer = readFileSync(uploadedFile.filepath);
         const base64 = fileBuffer.toString('base64');
         const ext = uploadedFile.originalFilename?.split('.').pop() || (fileType === 'pdf' ? 'pdf' : 'jpg');
@@ -147,7 +143,6 @@ module.exports = async function handler(req, res) {
         fileUrl = await saveToGitHub(filename, base64, true);
       } catch (e) {
         console.error('File upload error:', e.message);
-        // Continue without file — don't block card save
       }
     }
 
@@ -161,4 +156,5 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-}
+};
+module.exports.config = { api: { bodyParser: false } };
