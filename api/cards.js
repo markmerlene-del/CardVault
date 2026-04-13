@@ -5,7 +5,7 @@
 
 const { readFileSync, writeFileSync, existsSync, mkdirSync } = require('fs');
 const { join } = require('path');
-const formidable = require('formidable');
+const { formidable } = require('formidable');
 
 const config = { api: { bodyParser: false } };
 module.exports.config = config;
