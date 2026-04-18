@@ -1,5 +1,21 @@
 [
   {
+    "id": "card_1776548972708",
+    "name": "Christie E. Choi, M.D.",
+    "company": "TDDC - Texas Digestive Disease Consultants",
+    "phone": "",
+    "email": "",
+    "notes": "",
+    "tags": [
+      "doctor",
+      "gastroenterologist",
+      "medical"
+    ],
+    "fileUrl": "https://raw.githubusercontent.com/markmerlene-Del/CardVault/main/public/cards/card_1776548972708.jpg",
+    "fileType": "image",
+    "createdAt": "2026-04-18T21:49:33.995Z"
+  },
+  {
     "id": "card_1776086848834",
     "name": "Mark Merlene, Sr",
     "company": "Tonia Felczer Top Dog Real Estate & Management, LLC",
